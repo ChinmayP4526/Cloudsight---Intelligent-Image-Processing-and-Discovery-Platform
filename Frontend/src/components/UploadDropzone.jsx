@@ -1,13 +1,16 @@
-
 import { useEffect, useRef, useState } from "react";
 import { CloudUpload, FileImage, Check, X } from "lucide-react";
 
 const MAX_SIZE = 20 * 1024 * 1024;
 const SUPPORTED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/avif"];
 
-export default function UploadDropzone({ onFileChange }) {
+export default function UploadDropzone({ onFileChange, initialFile = null }) {
   const inputRef = useRef(null);
-  const [file, setFile] = useState(null);
+  const [file, setFile] = useState(initialFile);
+
+  useEffect(() => {
+    setFile(initialFile);
+  }, [initialFile]);
   const [previewUrl, setPreviewUrl] = useState("");
   const [dragging, setDragging] = useState(false);
   const [error, setError] = useState("");
@@ -86,29 +89,48 @@ export default function UploadDropzone({ onFileChange }) {
           }}
         />
 
-        <div className="upload-icon"><CloudUpload size={27} /></div>
+        <div className="upload-icon">
+          <CloudUpload size={27} />
+        </div>
         <h3>Drop your image here</h3>
-        <p>Drag and drop or <span className="browse-link">browse files</span></p>
+        <p>
+          Drag and drop or <span className="browse-link">browse files</span>
+        </p>
         <div className="upload-formats">
-          <span>JPG</span><span>PNG</span><span>WEBP</span><span>AVIF</span>
+          <span>JPG</span>
+          <span>PNG</span>
+          <span>WEBP</span>
+          <span>AVIF</span>
         </div>
         <small className="size-limit">Maximum file size: 20 MB</small>
       </div>
 
-      {error && <p className="form-error" role="alert">{error}</p>}
+      {error && (
+        <p className="form-error" role="alert">
+          {error}
+        </p>
+      )}
 
       {file && (
         <div className="preview-card">
           <div className="preview-image-wrap">
-            {previewUrl && <img src={previewUrl} alt="Selected image preview" />}
+            {previewUrl && (
+              <img src={previewUrl} alt="Selected image preview" />
+            )}
           </div>
           <div className="preview-details">
-            <div className="file-icon"><FileImage size={19} /></div>
+            <div className="file-icon">
+              <FileImage size={19} />
+            </div>
             <div className="file-copy">
               <strong title={file.name}>{file.name}</strong>
-              <small>{(file.size / (1024 * 1024)).toFixed(2)} MB · {file.type}</small>
+              <small>
+                {(file.size / (1024 * 1024)).toFixed(2)} MB · {file.type}
+              </small>
             </div>
-            <span className="ready-tag"><Check size={13} /> Ready</span>
+            <span className="ready-tag">
+              <Check size={13} /> Ready
+            </span>
             <button
               className="icon-button remove-button"
               onClick={removeFile}
