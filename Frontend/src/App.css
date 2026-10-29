@@ -843,3 +843,541 @@ body { color: var(--text); background: var(--bg); }
     animation-duration: 2s;
   }
 }
+
+/* =========================================
+   GLOBAL LOADING STATES
+   ========================================= */
+
+.cloudsight-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  min-height: 220px;
+  padding: 32px 20px;
+  color: var(--text-secondary, #667085);
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+.cloudsight-loading.is-compact {
+  flex-direction: row;
+  justify-content: flex-start;
+  gap: 10px;
+  min-height: auto;
+  padding: 12px 0;
+  text-align: left;
+}
+
+.cloudsight-loading-icon {
+  flex-shrink: 0;
+  color: var(--primary-color, #635bff);
+  animation: cloudsight-loading-spin 0.9s linear infinite;
+}
+
+@keyframes cloudsight-loading-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Animated skeleton placeholders */
+
+.cloudsight-skeleton {
+  position: relative;
+  overflow: hidden;
+  border-radius: 10px;
+  background: var(--skeleton-base, #e9eaf0);
+}
+
+.cloudsight-skeleton::after {
+  position: absolute;
+  inset: 0;
+  content: "";
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--skeleton-shine, rgba(255, 255, 255, 0.7)),
+    transparent
+  );
+  animation: cloudsight-skeleton-shimmer 1.5s ease-in-out infinite;
+}
+
+@keyframes cloudsight-skeleton-shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+[data-theme="dark"] .cloudsight-skeleton,
+.dark .cloudsight-skeleton,
+.dark-mode .cloudsight-skeleton,
+[data-bs-theme="dark"] .cloudsight-skeleton {
+  --skeleton-base: #292938;
+  --skeleton-shine: rgba(255, 255, 255, 0.07);
+}
+
+.skeleton-stat {
+  min-height: 125px;
+  padding: 20px;
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 16px;
+  background: var(--card-bg, #fff);
+}
+
+.skeleton-stat-icon {
+  width: 38px;
+  height: 38px;
+  margin-bottom: 16px;
+}
+
+.skeleton-stat-value {
+  width: 85px;
+  height: 25px;
+  margin-bottom: 10px;
+}
+
+.skeleton-stat-label {
+  width: 65%;
+  height: 12px;
+}
+
+.skeleton-result-card {
+  overflow: hidden;
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 16px;
+  background: var(--card-bg, #fff);
+}
+
+.skeleton-result-image {
+  width: 100%;
+  height: 210px;
+  border-radius: 0;
+}
+
+.skeleton-result-body {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+}
+
+.skeleton-result-title {
+  width: 75%;
+  height: 16px;
+}
+
+.skeleton-result-meta {
+  width: 48%;
+  height: 12px;
+}
+
+.skeleton-result-actions {
+  width: 100%;
+  height: 36px;
+  margin-top: 6px;
+}
+
+/* Image processing page: more comfortable spacing */
+
+.upload-page,
+.uploads-page {
+  padding-bottom: 32px;
+}
+
+.upload-page .upload-dropzone,
+.uploads-page .upload-dropzone {
+  margin-bottom: 24px;
+}
+
+.upload-page .upload-actions,
+.uploads-page .upload-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+  margin-top: 24px;
+}
+
+.upload-page .upload-actions .btn,
+.uploads-page .upload-actions .btn {
+  min-height: 44px;
+  padding: 10px 20px;
+}
+
+.upload-page .upload-status,
+.uploads-page .upload-status {
+  margin-top: 20px;
+  padding: 16px 18px;
+  border-radius: 12px;
+  line-height: 1.6;
+}
+
+.upload-page .upload-dropzone button,
+.uploads-page .upload-dropzone button {
+  margin: 8px 4px;
+}
+
+@media (max-width: 600px) {
+  .upload-page .upload-actions,
+  .uploads-page .upload-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .upload-page .upload-actions .btn,
+  .uploads-page .upload-actions .btn {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cloudsight-loading-icon,
+  .cloudsight-skeleton::after {
+    animation-duration: 3s;
+  }
+}
+
+/* =========================================
+   DASHBOARD STAT SKELETONS
+   ========================================= */
+
+.dashboard-stat-skeleton {
+  min-width: 0;
+  min-height: 125px;
+  padding: 20px;
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 16px;
+  background: var(--card-bg, #fff);
+}
+
+/* Shared animated skeleton */
+
+.cloudsight-skeleton {
+  position: relative;
+  overflow: hidden;
+  border-radius: 8px;
+  background: var(--skeleton-base, #e9eaf0);
+}
+
+.cloudsight-skeleton::after {
+  position: absolute;
+  inset: 0;
+  content: "";
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--skeleton-shine, rgba(255, 255, 255, 0.7)),
+    transparent
+  );
+  animation: cloudsight-skeleton-shimmer 1.5s ease-in-out infinite;
+}
+
+@keyframes cloudsight-skeleton-shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.skeleton-stat-icon {
+  width: 38px;
+  height: 38px;
+  margin-bottom: 16px;
+}
+
+.skeleton-stat-value {
+  width: 85px;
+  height: 25px;
+  margin-bottom: 10px;
+}
+
+.skeleton-stat-label {
+  width: 65%;
+  height: 12px;
+}
+
+/* =========================================
+   RESULTS LOADING SKELETONS
+   ========================================= */
+
+.results-loading-heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 6px 0 18px;
+  color: var(--text-secondary, #667085);
+  font-size: 0.9rem;
+}
+
+.skeleton-result-card {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 16px;
+  background: var(--card-bg, #fff);
+}
+
+.skeleton-result-image {
+  width: 100%;
+  height: 210px;
+  border-radius: 0;
+}
+
+.skeleton-result-body {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+}
+
+.skeleton-result-title {
+  width: 75%;
+  height: 16px;
+}
+
+.skeleton-result-meta {
+  width: 48%;
+  height: 12px;
+}
+
+.skeleton-result-actions {
+  width: 100%;
+  height: 36px;
+  margin-top: 6px;
+}
+
+/* =========================================
+   IMAGE PROCESSING PAGE SPACING
+   ========================================= */
+
+.uploads-page {
+  padding-bottom: 32px;
+}
+
+.standalone-upload {
+  padding: clamp(20px, 3vw, 32px);
+}
+
+.standalone-upload > .section-heading {
+  margin-bottom: 24px;
+}
+
+.upload-dropzone-wrapper {
+  margin-bottom: 24px;
+}
+
+.upload-summary {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-top: 20px;
+  padding: 16px 18px;
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 12px;
+  background: var(--card-bg, #fff);
+  color: var(--text-color, #171923);
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.upload-summary > svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.upload-summary strong {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.upload-summary p {
+  margin: 0;
+  color: var(--text-secondary, #667085);
+  overflow-wrap: anywhere;
+}
+
+.upload-summary p + p {
+  margin-top: 8px;
+}
+
+.upload-success-message {
+  border-color: #86efac;
+  background: #f0fdf4;
+  color: #166534;
+}
+
+.upload-error-message {
+  border-color: #fca5a5;
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+[data-theme="dark"] .upload-success-message,
+.dark .upload-success-message,
+.dark-mode .upload-success-message,
+[data-bs-theme="dark"] .upload-success-message {
+  border-color: #246b48;
+  background: #142b22;
+  color: #a7f3c5;
+}
+
+[data-theme="dark"] .upload-error-message,
+.dark .upload-error-message,
+.dark-mode .upload-error-message,
+[data-bs-theme="dark"] .upload-error-message {
+  border-color: #7f3038;
+  background: #321c23;
+  color: #fda4af;
+}
+
+.upload-progress-area {
+  margin-top: 22px;
+  padding: 18px;
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 12px;
+  background: var(--surface-bg, #f8f9fc);
+  color: var(--text-color, #171923);
+}
+
+.upload-progress-heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.upload-progress-heading svg {
+  flex-shrink: 0;
+  color: var(--primary-color, #635bff);
+}
+
+.upload-progress-track {
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--border-color, #e5e7eb);
+}
+
+.upload-progress-indicator {
+  width: 38%;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--primary-color, #635bff);
+  animation: cloudsight-upload-progress 1.4s ease-in-out infinite;
+}
+
+@keyframes cloudsight-upload-progress {
+  0% {
+    transform: translateX(-110%);
+  }
+
+  100% {
+    transform: translateX(290%);
+  }
+}
+
+.upload-progress-area > p {
+  margin: 12px 0 0;
+  color: var(--text-secondary, #667085);
+  font-size: 0.82rem;
+  line-height: 1.6;
+}
+
+.upload-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-top: 26px;
+}
+
+.upload-actions .primary-button,
+.upload-actions .secondary-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 46px;
+  padding: 12px 22px;
+}
+
+.upload-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.standalone-upload > .privacy-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border-color, #e5e7eb);
+  line-height: 1.65;
+}
+
+.standalone-upload > .privacy-note svg {
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+
+.dashboard-load-error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 16px 18px;
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 12px;
+  color: var(--text-color, #171923);
+  background: var(--card-bg, #fff);
+}
+
+/* Dark mode skeleton colors */
+
+[data-theme="dark"] .cloudsight-skeleton,
+.dark .cloudsight-skeleton,
+.dark-mode .cloudsight-skeleton,
+[data-bs-theme="dark"] .cloudsight-skeleton {
+  --skeleton-base: #292938;
+  --skeleton-shine: rgba(255, 255, 255, 0.07);
+}
+
+@media (max-width: 600px) {
+  .standalone-upload {
+    padding: 18px;
+  }
+
+  .upload-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .upload-actions .primary-button,
+  .upload-actions .secondary-button {
+    width: 100%;
+  }
+
+  .upload-summary {
+    padding: 14px;
+  }
+
+  .dashboard-load-error {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cloudsight-skeleton::after {
+    animation-duration: 3s;
+  }
+
+  .upload-progress-indicator {
+    animation-duration: 3s;
+  }
+}

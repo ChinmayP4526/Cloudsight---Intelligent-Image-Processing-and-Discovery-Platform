@@ -33,6 +33,29 @@ function formatDate(date) {
   return parsed.toLocaleString();
 }
 
+function ResultsSkeleton() {
+  return (
+    <div
+      className="results-grid"
+      aria-label="Loading processed images"
+      aria-busy="true"
+    >
+      {Array.from({ length: 6 }, (_, index) => (
+        <div className="skeleton-result-card" key={index}>
+          <div className="cloudsight-skeleton skeleton-result-image" />
+
+          <div className="skeleton-result-body">
+            <div className="cloudsight-skeleton skeleton-result-title" />
+            <div className="cloudsight-skeleton skeleton-result-meta" />
+            <div className="cloudsight-skeleton skeleton-result-meta" />
+            <div className="cloudsight-skeleton skeleton-result-actions" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function Results() {
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -73,7 +96,6 @@ export default function Results() {
   useEffect(() => {
     fetchResults();
 
-    // Refresh before the 15-minute preview URLs expire.
     const interval = setInterval(() => {
       fetchResults(true);
     }, 10 * 60 * 1000);
@@ -98,9 +120,7 @@ export default function Results() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          key: image.key,
-        }),
+        body: JSON.stringify({ key: image.key }),
       });
 
       const data = await response.json().catch(() => ({}));
@@ -115,7 +135,6 @@ export default function Results() {
 
       setNotice(`"${image.fileName}" was deleted successfully.`);
 
-      // Refresh the gallery with fresh results and preview URLs.
       await fetchResults(true);
     } catch (err) {
       setError(err.message || "Deletion failed. Please try again.");
@@ -150,7 +169,7 @@ export default function Results() {
             size={16}
             className={refreshing ? "spin-animation" : ""}
           />
-          Refresh
+          {refreshing ? "Refreshing..." : "Refresh"}
         </button>
       </div>
 
@@ -176,6 +195,7 @@ export default function Results() {
         <div className="results-message results-success" role="status">
           <CheckCircle2 size={18} />
           <span>{notice}</span>
+
           <button
             type="button"
             className="results-dismiss"
@@ -191,6 +211,7 @@ export default function Results() {
         <div className="results-message results-error" role="alert">
           <AlertCircle size={18} />
           <span>{error}</span>
+
           <button
             type="button"
             className="results-dismiss"
@@ -203,9 +224,31 @@ export default function Results() {
       )}
 
       {loading ? (
-        <div className="results-message">
-          <LoaderCircle size={22} className="spin-animation" />
-          Loading your processed images...
+        <>
+          <div className="results-loading-heading" role="status">
+            <LoaderCircle size={18} className="spin-animation" />
+            Fetching your processed images...
+          </div>
+
+          <ResultsSkeleton />
+        </>
+      ) : error && images.length === 0 ? (
+        <div className="results-empty">
+          <div className="results-empty-icon">
+            <AlertCircle size={34} />
+          </div>
+
+          <h3>Couldn't load your results</h3>
+          <p>Check your connection and try fetching the gallery again.</p>
+
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={() => fetchResults()}
+          >
+            <RefreshCw size={16} />
+            Try again
+          </button>
         </div>
       ) : images.length === 0 ? (
         <div className="results-empty">
@@ -294,6 +337,7 @@ export default function Results() {
                       ) : (
                         <Trash2 size={17} />
                       )}
+
                       <span>{isDeleting ? "Deleting..." : "Delete"}</span>
                     </button>
                   </div>
