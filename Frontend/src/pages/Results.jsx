@@ -1,5 +1,4 @@
-
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Image as ImageIcon,
   Sparkles,
@@ -12,9 +11,11 @@ import {
   LoaderCircle,
   Trash2,
   CheckCircle2,
+  Search,
+  X,
+  ArrowDownUp,
 } from "lucide-react";
 import { Link } from "react-router-dom";
-
 const API_URL =
   "https://yhzobik9cl.execute-api.ap-southeast-2.amazonaws.com";
 
@@ -65,6 +66,11 @@ export default function Results() {
   const [notice, setNotice] = useState("");
   const [updatedAt, setUpdatedAt] = useState(null);
 
+  // Client-side search, sorting, and filtering.
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortBy, setSortBy] = useState("newest");
+  const [sizeFilter, setSizeFilter] = useState("all");
+
   const fetchResults = useCallback(async (isRefresh = false) => {
     if (isRefresh) {
       setRefreshing(true);
@@ -103,6 +109,52 @@ export default function Results() {
     return () => clearInterval(interval);
   }, [fetchResults]);
 
+  const filteredImages = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+
+    return images
+      .filter((image) => {
+        const matchesSearch = (image.fileName || "")
+          .toLowerCase()
+          .includes(query);
+
+        const size = Number(image.sizeBytes) || 0;
+
+        const matchesSize =
+          sizeFilter === "all" ||
+          (sizeFilter === "small" && size < 500 * 1024) ||
+          (sizeFilter === "medium" &&
+            size >= 500 * 1024 &&
+            size < 2 * 1024 * 1024) ||
+          (sizeFilter === "large" && size >= 2 * 1024 * 1024);
+
+        return matchesSearch && matchesSize;
+      })
+      .sort((a, b) => {
+        if (sortBy === "largest") {
+          return (Number(b.sizeBytes) || 0) - (Number(a.sizeBytes) || 0);
+        }
+
+        if (sortBy === "smallest") {
+          return (Number(a.sizeBytes) || 0) - (Number(b.sizeBytes) || 0);
+        }
+
+        const dateA = new Date(a.lastModified || 0).getTime() || 0;
+        const dateB = new Date(b.lastModified || 0).getTime() || 0;
+
+        return sortBy === "oldest" ? dateA - dateB : dateB - dateA;
+      });
+  }, [images, searchQuery, sortBy, sizeFilter]);
+
+  const clearFilters = () => {
+    setSearchQuery("");
+    setSortBy("newest");
+    setSizeFilter("all");
+  };
+
+  const hasActiveFilters =
+    searchQuery.trim() !== "" || sortBy !== "newest" || sizeFilter !== "all";
+
   const handleDelete = async (image) => {
     const confirmed = window.confirm(
       `Permanently delete "${image.fileName}" and its original image, optimized image, and thumbnail?`
@@ -134,7 +186,6 @@ export default function Results() {
       );
 
       setNotice(`"${image.fileName}" was deleted successfully.`);
-
       await fetchResults(true);
     } catch (err) {
       setError(err.message || "Deletion failed. Please try again.");
@@ -190,6 +241,86 @@ export default function Results() {
           Updated: {updatedAt ? formatDate(updatedAt) : "—"}
         </div>
       </div>
+
+      {!loading && images.length > 0 && (
+        <section className="results-toolbar" aria-label="Search and filter images">
+          <div className="results-search">
+            <Search size={18} aria-hidden="true" />
+
+            <input
+              type="search"
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+              placeholder="Search by filename..."
+              aria-label="Search processed images by filename"
+            />
+
+            {searchQuery && (
+              <button
+                type="button"
+                className="results-search-clear"
+                onClick={() => setSearchQuery("")}
+                aria-label="Clear search"
+              >
+                <X size={16} />
+              </button>
+            )}
+          </div>
+
+          <div className="results-control">
+            <label htmlFor="results-sort">
+              <ArrowDownUp size={15} />
+              Sort by
+            </label>
+
+            <select
+              id="results-sort"
+              value={sortBy}
+              onChange={(event) => setSortBy(event.target.value)}
+            >
+              <option value="newest">Newest first</option>
+              <option value="oldest">Oldest first</option>
+              <option value="largest">Largest file</option>
+              <option value="smallest">Smallest file</option>
+            </select>
+          </div>
+
+          <div className="results-control">
+            <label htmlFor="results-size-filter">
+              <HardDrive size={15} />
+              File size
+            </label>
+
+            <select
+              id="results-size-filter"
+              value={sizeFilter}
+              onChange={(event) => setSizeFilter(event.target.value)}
+            >
+              <option value="all">All sizes</option>
+              <option value="small">Under 500 KB</option>
+              <option value="medium">500 KB – 2 MB</option>
+              <option value="large">2 MB and above</option>
+            </select>
+          </div>
+
+          <div className="results-filter-summary">
+            <span>
+              Showing <strong>{filteredImages.length}</strong> of{" "}
+              <strong>{images.length}</strong> images
+            </span>
+
+            {hasActiveFilters && (
+              <button
+                type="button"
+                className="results-clear-filters"
+                onClick={clearFilters}
+              >
+                Clear filters
+              </button>
+            )}
+          </div>
+        </section>
+      )}
 
       {notice && (
         <div className="results-message results-success" role="status">
@@ -266,9 +397,26 @@ export default function Results() {
             Upload an image <ArrowUpRight size={16} />
           </Link>
         </div>
+      ) : filteredImages.length === 0 ? (
+        <div className="results-empty">
+          <div className="results-empty-icon">
+            <Search size={34} />
+          </div>
+
+          <h3>No matching images</h3>
+          <p>Try another filename or change your filters.</p>
+
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={clearFilters}
+          >
+            Clear filters
+          </button>
+        </div>
       ) : (
         <div className="results-grid">
-          {images.map((image) => {
+          {filteredImages.map((image) => {
             const isDeleting = deletingKey === image.key;
 
             return (
