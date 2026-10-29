@@ -34,6 +34,41 @@ function formatDate(date) {
   return parsed.toLocaleString();
 }
 
+function getImageTagNames(image) {
+  const sources = [
+    image?.tags,
+    image?.labels,
+    image?.aiTags,
+    image?.metadata?.tags,
+    image?.metadata?.labels,
+  ];
+
+  const allTags = sources
+    .flatMap((source) => {
+      if (!source) return [];
+      if (Array.isArray(source)) return source;
+      if (typeof source === "string") return source.split(",");
+      return [];
+    })
+    .map((tag) => {
+      if (typeof tag === "string") return tag.trim();
+      return String(
+        tag?.name ?? tag?.Name ?? tag?.label ?? tag?.Label ?? tag?.text ?? "",
+      ).trim();
+    })
+    .filter(Boolean);
+
+  // The API may expose the same Rekognition labels under multiple fields.
+  // Keep the first spelling and remove duplicates without regard to case.
+  const seen = new Set();
+  return allTags.filter((tag) => {
+    const normalized = tag.toLocaleLowerCase();
+    if (seen.has(normalized)) return false;
+    seen.add(normalized);
+    return true;
+  });
+}
+
 function ResultsSkeleton() {
   return (
     <div
@@ -134,9 +169,13 @@ export default function Results() {
 
     return images
       .filter((image) => {
-        const matchesSearch = (image.fileName || "")
-          .toLowerCase()
-          .includes(query);
+        const searchableText = [
+          image.fileName || "",
+          ...getImageTagNames(image),
+        ]
+          .join(" ")
+          .toLowerCase();
+        const matchesSearch = searchableText.includes(query);
 
         const size = Number(image.sizeBytes) || 0;
 
@@ -269,8 +308,8 @@ export default function Results() {
               type="search"
               value={searchQuery}
               onChange={(event) => setSearchQuery(event.target.value)}
-              placeholder="Search by filename..."
-              aria-label="Search processed images by filename"
+              placeholder="Search filename or AI tags..."
+              aria-label="Search processed images by filename or AI tags"
             />
 
             {searchQuery && (
@@ -420,7 +459,7 @@ export default function Results() {
           </div>
 
           <h3>No matching images</h3>
-          <p>Try another filename or change your filters.</p>
+          <p>Try another filename or AI tag, or change your filters.</p>
 
           <button
             type="button"
@@ -570,15 +609,7 @@ export default function Results() {
                     <Sparkles size={16} /> AI-generated tags
                   </h3>
                   {(() => {
-                    const rawTags =
-                      selectedImage.tags || selectedImage.labels || [];
-                    const tags = rawTags
-                      .map((tag) =>
-                        typeof tag === "string"
-                          ? tag
-                          : tag?.name || tag?.Name || tag?.label || tag?.Label,
-                      )
-                      .filter(Boolean);
+                    const tags = getImageTagNames(selectedImage);
                     return tags.length ? (
                       <div className="image-details-tags">
                         {tags.map((tag, index) => (
