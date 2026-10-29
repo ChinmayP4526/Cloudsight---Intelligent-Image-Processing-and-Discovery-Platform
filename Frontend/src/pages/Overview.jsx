@@ -15,7 +15,7 @@ import {
 import { Link } from "react-router-dom";
 import StatCard from "../components/StatCard";
 import UploadDropzone from "../components/UploadDropzone";
-
+import { authFetch } from "../api/authFetch";
 const API_URL =
   "https://yhzobik9cl.execute-api.ap-southeast-2.amazonaws.com";
 
@@ -30,7 +30,7 @@ export default function Overview() {
 
     async function loadStats() {
       try {
-        const response = await fetch(`${API_URL}/dashboard-stats`);
+        const response = await authFetch(`${API_URL}/dashboard-stats`);
 
         if (!response.ok) {
           throw new Error("Could not load dashboard statistics");

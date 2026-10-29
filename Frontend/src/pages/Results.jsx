@@ -17,6 +17,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { authFetch } from "../api/authFetch";
 const API_URL = "https://yhzobik9cl.execute-api.ap-southeast-2.amazonaws.com";
 
 function formatBytes(bytes = 0) {
@@ -117,7 +118,7 @@ export default function Results() {
     setError("");
 
     try {
-      const response = await fetch(`${API_URL}/results`);
+      const response = await authFetch(`${API_URL}/results`);
 
       if (!response.ok) {
         throw new Error(`Could not load results (${response.status}).`);
@@ -226,7 +227,7 @@ export default function Results() {
     setNotice("");
 
     try {
-      const response = await fetch(`${API_URL}/delete-image`, {
+      const response = await authFetch(`${API_URL}/delete-image`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

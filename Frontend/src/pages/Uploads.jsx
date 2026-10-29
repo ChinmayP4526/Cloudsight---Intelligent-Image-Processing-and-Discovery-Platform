@@ -14,7 +14,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 import UploadDropzone from "../components/UploadDropzone";
-
+import { authFetch } from "../api/authFetch";
 const API_URL = "https://yhzobik9cl.execute-api.ap-southeast-2.amazonaws.com";
 
 const POLL_INTERVAL = 2000;
@@ -199,7 +199,7 @@ export default function Uploads() {
     setDetailsError("");
 
     try {
-      const response = await fetch(`${API_URL}/results`);
+      const response = await authFetch(`${API_URL}/results`);
       const data = await response.json();
 
       if (!response.ok) {
@@ -208,7 +208,17 @@ export default function Uploads() {
 
       const originalName = originalKey.split("/").pop();
       const optimizedName = originalName.replace(/\.[^.]+$/, ".webp");
-      const expectedKey = `optimized/uploads/${optimizedName}`;
+
+      // Derive the authenticated user's folder from the uploaded S3 key.
+      const uploadsMarker = "/uploads/";
+      const uploadsIndex = originalKey.indexOf(uploadsMarker);
+
+      if (uploadsIndex === -1) {
+        throw new Error("Invalid user-specific upload key.");
+      }
+
+      const userPrefix = originalKey.slice(0, uploadsIndex);
+      const expectedKey = `${userPrefix}/optimized/${optimizedName}`;
 
       const result = (data.images || []).find(
         (image) => image.key === expectedKey,
@@ -248,7 +258,7 @@ export default function Uploads() {
             await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL));
           }
 
-          const response = await fetch(
+          const response = await authFetch(
             `${API_URL}/processing-status?key=${encodeURIComponent(key)}`,
           );
 
@@ -319,9 +329,11 @@ export default function Uploads() {
     resetImageDetails();
 
     try {
-      const urlResponse = await fetch(`${API_URL}/upload-url`, {
+      const urlResponse = await authFetch(`${API_URL}/upload-url`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({
           contentType: file.type,
           fileSize: file.size,
