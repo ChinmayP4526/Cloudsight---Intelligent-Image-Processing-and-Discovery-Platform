@@ -1,4 +1,5 @@
 
+import { useEffect } from "react";
 import { NavLink } from "react-router-dom";
 import {
   Aperture,
@@ -10,6 +11,7 @@ import {
   X,
   Zap,
 } from "lucide-react";
+import { useProfile } from "../context/ProfileContext";
 
 const links = [
   { to: "/", label: "Overview", icon: LayoutDashboard, end: true },
@@ -18,6 +20,29 @@ const links = [
 ];
 
 export default function Sidebar({ open, onClose }) {
+  const { profile } = useProfile();
+
+  const initials = (profile.name || "CS")
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0].toUpperCase())
+    .join("");
+
+  useEffect(() => {
+    function handleEscape(event) {
+      if (event.key === "Escape") {
+        onClose?.();
+      }
+    }
+
+    document.addEventListener("keydown", handleEscape);
+
+    return () => {
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [onClose]);
+
   return (
     <>
       <div
@@ -29,7 +54,10 @@ export default function Sidebar({ open, onClose }) {
       <aside className={`sidebar ${open ? "sidebar-open" : ""}`}>
         <div className="sidebar-brand-row">
           <NavLink to="/" className="brand" onClick={onClose}>
-            <span className="brand-mark"><Aperture size={23} /></span>
+            <span className="brand-mark">
+              <Aperture size={23} />
+            </span>
+
             <span className="brand-name">
               cloud<span>sight</span>
               <small>IMAGE INTELLIGENCE</small>
@@ -66,11 +94,19 @@ export default function Sidebar({ open, onClose }) {
 
         <div className="sidebar-bottom">
           <div className="usage-card">
-            <span className="usage-icon"><Zap size={17} /></span>
+            <span className="usage-icon">
+              <Zap size={17} />
+            </span>
+
             <strong>Serverless power</strong>
-            <p>Image processing powered by AWS S3 and Lambda.</p>
-            <div className="usage-line"><span /></div>
-            <small>CloudSight processing pipeline</small>
+
+            <p>
+              Image processing powered by AWS S3 and Lambda.
+            </p>
+
+            <small className="usage-description">
+              AI-powered image optimization
+            </small>
           </div>
 
           <NavLink
@@ -80,7 +116,8 @@ export default function Sidebar({ open, onClose }) {
               `nav-link ${isActive ? "active" : ""}`
             }
           >
-            <Settings2 size={18} /><span>Settings</span>
+            <Settings2 size={18} />
+            <span>Settings</span>
           </NavLink>
 
           <NavLink
@@ -90,16 +127,27 @@ export default function Sidebar({ open, onClose }) {
               `nav-link ${isActive ? "active" : ""}`
             }
           >
-            <CircleHelp size={18} /><span>Help & support</span>
+            <CircleHelp size={18} />
+            <span>Help & support</span>
           </NavLink>
 
           <div className="profile">
-            <div className="avatar">CS</div>
+            <div className="avatar">{initials || "CS"}</div>
+
             <div className="profile-copy">
-              <strong>CloudSight User</strong>
-              <small>Personal workspace</small>
+              <strong>
+                {profile.name || "CloudSight User"}
+              </strong>
+
+              <small>
+                {profile.email || "Personal workspace"}
+              </small>
             </div>
-            <span className="profile-indicator" title="Local demo profile" />
+
+            <span
+              className="profile-indicator"
+              title="Cognito account"
+            />
           </div>
         </div>
       </aside>
