@@ -14,10 +14,10 @@ import {
   Search,
   X,
   ArrowDownUp,
+  ExternalLink,
 } from "lucide-react";
 import { Link } from "react-router-dom";
-const API_URL =
-  "https://yhzobik9cl.execute-api.ap-southeast-2.amazonaws.com";
+const API_URL = "https://yhzobik9cl.execute-api.ap-southeast-2.amazonaws.com";
 
 function formatBytes(bytes = 0) {
   if (bytes < 1024) return `${bytes} B`;
@@ -65,6 +65,7 @@ export default function Results() {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [updatedAt, setUpdatedAt] = useState(null);
+  const [selectedImage, setSelectedImage] = useState(null);
 
   // Client-side search, sorting, and filtering.
   const [searchQuery, setSearchQuery] = useState("");
@@ -102,12 +103,31 @@ export default function Results() {
   useEffect(() => {
     fetchResults();
 
-    const interval = setInterval(() => {
-      fetchResults(true);
-    }, 10 * 60 * 1000);
+    const interval = setInterval(
+      () => {
+        fetchResults(true);
+      },
+      10 * 60 * 1000,
+    );
 
     return () => clearInterval(interval);
   }, [fetchResults]);
+
+  useEffect(() => {
+    if (!selectedImage) return undefined;
+
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") setSelectedImage(null);
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = "";
+    };
+  }, [selectedImage]);
 
   const filteredImages = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
@@ -157,7 +177,7 @@ export default function Results() {
 
   const handleDelete = async (image) => {
     const confirmed = window.confirm(
-      `Permanently delete "${image.fileName}" and its original image, optimized image, and thumbnail?`
+      `Permanently delete "${image.fileName}" and its original image, optimized image, and thumbnail?`,
     );
 
     if (!confirmed) return;
@@ -181,9 +201,7 @@ export default function Results() {
         throw new Error(data.message || "Could not delete this image.");
       }
 
-      setImages((current) =>
-        current.filter((item) => item.key !== image.key)
-      );
+      setImages((current) => current.filter((item) => item.key !== image.key));
 
       setNotice(`"${image.fileName}" was deleted successfully.`);
       await fetchResults(true);
@@ -216,10 +234,7 @@ export default function Results() {
           onClick={() => fetchResults(true)}
           disabled={loading || refreshing || Boolean(deletingKey)}
         >
-          <RefreshCw
-            size={16}
-            className={refreshing ? "spin-animation" : ""}
-          />
+          <RefreshCw size={16} className={refreshing ? "spin-animation" : ""} />
           {refreshing ? "Refreshing..." : "Refresh"}
         </button>
       </div>
@@ -243,7 +258,10 @@ export default function Results() {
       </div>
 
       {!loading && images.length > 0 && (
-        <section className="results-toolbar" aria-label="Search and filter images">
+        <section
+          className="results-toolbar"
+          aria-label="Search and filter images"
+        >
           <div className="results-search">
             <Search size={18} aria-hidden="true" />
 
@@ -389,9 +407,7 @@ export default function Results() {
 
           <h3>No processed images yet</h3>
 
-          <p>
-            Upload an image and CloudSight will optimize it automatically.
-          </p>
+          <p>Upload an image and CloudSight will optimize it automatically.</p>
 
           <Link to="/uploads" className="btn btn-primary">
             Upload an image <ArrowUpRight size={16} />
@@ -421,7 +437,12 @@ export default function Results() {
 
             return (
               <article className="result-card" key={image.key}>
-                <div className="result-image">
+                <button
+                  type="button"
+                  className="result-image result-image-trigger"
+                  onClick={() => setSelectedImage(image)}
+                  aria-label={`View details for ${image.fileName}`}
+                >
                   <img
                     src={image.thumbnailUrl || image.previewUrl}
                     alt={image.fileName}
@@ -432,7 +453,7 @@ export default function Results() {
                     <Sparkles size={12} />
                     Optimized
                   </span>
-                </div>
+                </button>
 
                 <div className="result-card-body">
                   <h3 title={image.fileName}>{image.fileName}</h3>
@@ -478,10 +499,7 @@ export default function Results() {
                       aria-label={`Delete ${image.fileName}`}
                     >
                       {isDeleting ? (
-                        <LoaderCircle
-                          size={17}
-                          className="spin-animation"
-                        />
+                        <LoaderCircle size={17} className="spin-animation" />
                       ) : (
                         <Trash2 size={17} />
                       )}
@@ -493,6 +511,117 @@ export default function Results() {
               </article>
             );
           })}
+        </div>
+      )}
+
+      {selectedImage && (
+        <div
+          className="image-details-backdrop"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setSelectedImage(null);
+          }}
+          role="presentation"
+        >
+          <section
+            className="image-details-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="image-details-title"
+          >
+            <div className="image-details-header">
+              <div>
+                <span className="eyebrow">IMAGE DETAILS</span>
+                <h2 id="image-details-title">
+                  {selectedImage.fileName || "Processed image"}
+                </h2>
+              </div>
+              <button
+                type="button"
+                className="image-details-close"
+                onClick={() => setSelectedImage(null)}
+                aria-label="Close image details"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="image-details-content">
+              <div className="image-details-preview">
+                <img
+                  src={selectedImage.previewUrl || selectedImage.thumbnailUrl}
+                  alt={selectedImage.fileName || "Selected processed image"}
+                />
+              </div>
+
+              <div className="image-details-info">
+                <div className="image-details-facts">
+                  <div className="image-details-fact">
+                    <span>File size</span>
+                    <strong>{formatBytes(selectedImage.sizeBytes)}</strong>
+                  </div>
+                  <div className="image-details-fact">
+                    <span>Last modified</span>
+                    <strong>{formatDate(selectedImage.lastModified)}</strong>
+                  </div>
+                </div>
+
+                <div className="image-details-tags-section">
+                  <h3>
+                    <Sparkles size={16} /> AI-generated tags
+                  </h3>
+                  {(() => {
+                    const rawTags =
+                      selectedImage.tags || selectedImage.labels || [];
+                    const tags = rawTags
+                      .map((tag) =>
+                        typeof tag === "string"
+                          ? tag
+                          : tag?.name || tag?.Name || tag?.label || tag?.Label,
+                      )
+                      .filter(Boolean);
+                    return tags.length ? (
+                      <div className="image-details-tags">
+                        {tags.map((tag, index) => (
+                          <span
+                            className="image-details-tag"
+                            key={`${tag}-${index}`}
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="image-details-no-tags">
+                        AI tags are not available for this image yet.
+                      </p>
+                    );
+                  })()}
+                </div>
+
+                <div className="image-details-actions">
+                  {selectedImage.previewUrl && (
+                    <a
+                      className="btn btn-outline-secondary result-action-link"
+                      href={selectedImage.previewUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      <ExternalLink size={15} /> Open image
+                    </a>
+                  )}
+                  {selectedImage.downloadUrl && (
+                    <a
+                      className="btn btn-primary result-action-link"
+                      href={selectedImage.downloadUrl}
+                      download
+                    >
+                      <Download size={15} /> Download
+                    </a>
+                  )}
+                </div>
+              </div>
+            </div>
+          </section>
         </div>
       )}
     </div>
